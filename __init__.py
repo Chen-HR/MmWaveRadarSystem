@@ -7,7 +7,7 @@ if __name__ == '__main__':
   import matplotlib.collections
   import matplotlib.animation
 
-from Ti_mmWave_Demo_Driver import Ti_mmWave as mmWave
+from Ti_MmWave_Demo_Driver import Ti_MmWave as mmWave
 
 class Timer:
   """Simple timer class to measure elapsed time."""
@@ -72,7 +72,7 @@ class MMWaveRadarSystem:
 if __name__ == "__main__":
   detectionLimit = AreaLimit_3d(Range(-5, 5), Range(0, 5), Range(-5, 5))
 
-  mmWaveRadarSystem = MMWaveRadarSystem("xWR14xx", "COM3", "COM4", "Ti_mmWave_Demo_Driver\Profile\Profile-4.cfg", log_enable=True)
+  mmWaveRadarSystem = MMWaveRadarSystem("xWR14xx", "COM3", "COM4", "Ti_MmWave_Demo_Driver\Profile\Profile-4.cfg", log_enable=True)
 
   mmWaveRadarSystem.start()
 

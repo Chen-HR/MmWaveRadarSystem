@@ -1,4 +1,4 @@
-# mmWave Radar System
+# Millimeter Wave Radar System
 
 ## Library dependencies
 
@@ -16,10 +16,10 @@ python -m pip install pyserial==3.5
 python -m pip install numpy==1.26.0
 ```
 
-#### [`github.com/Chen-HR/Ti_mmWave_Demo_Driver`](https://github.com/Chen-HR/Ti_mmWave_Demo_Driver): 1.0
+#### [`github.com/Chen-HR/Ti_MmWave_Demo_Driver`](https://github.com/Chen-HR/Ti_MmWave_Demo_Driver): 1.0
 
 ```cli
-git clone https://github.com/Chen-HR/Ti_mmWave_Demo_Driver.git
+git clone https://github.com/Chen-HR/Ti_MmWave_Demo_Driver.git
 ```
 
 ### For use example
