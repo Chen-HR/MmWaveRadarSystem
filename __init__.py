@@ -2,7 +2,7 @@ import time
 import datetime
 import dataclasses
 
-from Ti_MmWave_Demo_Driver import Ti_MmWave as mmWave
+from Ti_MmWave_Demo_Driver import Ti_MmWave as MmWaveDevice
 
 if __name__ == '__main__':
   import matplotlib.pyplot
@@ -32,20 +32,16 @@ class AreaLimit_3d:
   z: Range = dataclasses.field(default_factory=Range)
 
 class MmWaveRadarSystem:
-  def __init__(self, mmWaveDevice_platform: str, mmWaveDevice_Ctrl_port_name: str, mmWaveDevice_Data_port_name: str, mmWaveDevice_profile: str, mmWaveDevice_Ctrl_port_baudrate: int = 115200, mmWaveDevice_Data_port_baudrate: int = 921600, mmWaveDevice_Send_timeInterval: int | float = 0.025, mmWaveDevice_Buffering_timeInterval: int | float = 0.1, mmWaveDevice_Parse_timeInterval: int | float = 0.5, threshold_dB: int | float = 14, removeStaticClutter: bool = True, framePeriodicity_ms: int = 1000, log_enable: bool = False):
+  def __init__(self, mmWaveDevice: MmWaveDevice, mmWaveDevice_profile: str, threshold_dB: int | float = 14, removeStaticClutter: bool = True, framePeriodicity_ms: int = 1000, log_enable: bool = False):
     self.log_enable = log_enable
     if self.log_enable: 
       timer = Timer()
       timer.start()
-    self.mmWaveDevice = mmWave(mmWaveDevice_platform, mmWaveDevice_Ctrl_port_name, mmWaveDevice_Data_port_name, mmWaveDevice_Ctrl_port_baudrate, mmWaveDevice_Data_port_baudrate, mmWaveDevice_Send_timeInterval, mmWaveDevice_Buffering_timeInterval, mmWaveDevice_Parse_timeInterval, log_enable=log_enable)
+    self.mmWaveDevice = mmWaveDevice
     if self.log_enable: print(f"[{datetime.datetime.now()}] Millimeter wave device connection completed, using a total of {timer.now()} second")
-    self.profile = mmWaveDevice_profile
     self.threshold_dB = threshold_dB
     self.removeStaticClutter = removeStaticClutter
     self.framePeriodicity_ms = framePeriodicity_ms
-    self.send_timeInterval = mmWaveDevice_Send_timeInterval
-    self.buffering_timeInterval = mmWaveDevice_Buffering_timeInterval
-    self.parse_timeInterval = mmWaveDevice_Parse_timeInterval
     self.mmWaveDevice.sensorStop()
     self.mmWaveDevice.Ctrl_Load_file(mmWaveDevice_profile)
     self.mmWaveDevice.config.command.guiMonitor.detectedObjects = 1
@@ -78,30 +74,31 @@ class MmWaveRadarSystem:
 if __name__ == "__main__":
   detectionLimit = AreaLimit_3d(Range(-5, 5), Range(0, 5), Range(-5, 5))
 
-  mmWaveRadarSystem = MmWaveRadarSystem("xWR14xx", "COM3", "COM4", "Ti_MmWave_Demo_Driver\Profile\Profile-4.cfg", log_enable=True)
+  mmWaveRadarSystem = MmWaveRadarSystem(MmWaveDevice("xWR14xx", "COM3", "COM4"), "Ti_MmWave_Demo_Driver\Profile\Profile-4.cfg", log_enable=True)
 
   mmWaveRadarSystem.start()
 
   def plot_3d(detectionLimit: AreaLimit_3d, mmWaveRadarSystem: MmWaveRadarSystem):
     figure: matplotlib.pyplot.Figure = matplotlib.pyplot.figure()
-    figure.set_label("mmWave Radar detection chart")
+    figure.set_label("Millimeter Wave Radar detection chart")
     axes: matplotlib.pyplot.Axes = figure.add_subplot(111, projection="3d")
     axes.set_title("Detection distribution map")
     axes.set(xlim3d=(detectionLimit.x.min, detectionLimit.x.max), xlabel="X (Unit: Meter)")
     axes.set(ylim3d=(detectionLimit.y.min, detectionLimit.y.max), ylabel="Y (Unit: Meter)")
     axes.set(zlim3d=(detectionLimit.z.min, detectionLimit.z.max), zlabel="Z (Unit: Meter)")
-    def update(frame, scatter: matplotlib.collections.PathCollection, device: mmWaveRadarSystem):
+    def update(frame, scatter: matplotlib.collections.PathCollection, mmWaveRadarSystem: MmWaveRadarSystem):
       detectedPoints = mmWaveRadarSystem.detectedPoints()
       scatter._offsets3d = tuple(zip(*detectedPoints)) if len(detectedPoints) != 0 else ([], [], [])
-    animation = matplotlib.animation.FuncAnimation(figure, update, fargs=(axes.scatter([], [], [], label='Detection Object'), mmWaveRadarSystem), interval=mmWaveRadarSystem.framePeriodicity_ms*mmWaveRadarSystem.parse_timeInterval, cache_frame_data=False)
+    animation = matplotlib.animation.FuncAnimation(figure, update, fargs=(axes.scatter([], [], [], label='Detection Object'), mmWaveRadarSystem), interval=mmWaveRadarSystem.framePeriodicity_ms*mmWaveRadarSystem.mmWaveDevice.Parse_timeInterval, cache_frame_data=False)
+    axes.grid(True)
     axes.legend()
     matplotlib.pyplot.show()
 
   def plot_2d(detectionLimit: AreaLimit_3d, mmWaveRadarSystem: MmWaveRadarSystem):
     figure: matplotlib.pyplot.Figure = matplotlib.pyplot.figure()
-    figure.set_label("mmWave Radar detection chart")
+    figure.set_label("Millimeter Wave Radar detection chart")
     axes: matplotlib.pyplot.Axes = figure.add_subplot(111)
-    def update(frame, axes: matplotlib.pyplot.Axes, device: mmWaveRadarSystem):
+    def update(frame, axes: matplotlib.pyplot.Axes, mmWaveRadarSystem: MmWaveRadarSystem):
       detectedPoints = mmWaveRadarSystem.detectedPoints()
       detectedPoints_ = tuple(zip(*detectedPoints)) if len(detectedPoints) != 0 else ([], [], [])
       axes.clear()
@@ -111,8 +108,9 @@ if __name__ == "__main__":
       axes.set_xlim(detectionLimit.x.min, detectionLimit.x.max)
       axes.set_ylim(detectionLimit.y.min, detectionLimit.y.max)
       axes.scatter(detectedPoints_[0], detectedPoints_[1], label="Detection Object")
+      axes.grid(True)
       axes.legend()
-    animation = matplotlib.animation.FuncAnimation(figure, update, fargs=(axes, mmWaveRadarSystem), interval=mmWaveRadarSystem.framePeriodicity_ms*mmWaveRadarSystem.parse_timeInterval, cache_frame_data=False)
+    animation = matplotlib.animation.FuncAnimation(figure, update, fargs=(axes, mmWaveRadarSystem), interval=mmWaveRadarSystem.framePeriodicity_ms*mmWaveRadarSystem.mmWaveDevice.Parse_timeInterval, cache_frame_data=False)
     matplotlib.pyplot.show()
 
   plot_3d(detectionLimit, mmWaveRadarSystem)
