@@ -2,12 +2,12 @@ import time
 import datetime
 import dataclasses
 
+from Ti_MmWave_Demo_Driver import Ti_MmWave as mmWave
+
 if __name__ == '__main__':
   import matplotlib.pyplot
   import matplotlib.collections
   import matplotlib.animation
-
-from Ti_MmWave_Demo_Driver import Ti_MmWave as mmWave
 
 class Timer:
   """Simple timer class to measure elapsed time."""
@@ -31,8 +31,8 @@ class AreaLimit_3d:
   y: Range = dataclasses.field(default_factory=Range)
   z: Range = dataclasses.field(default_factory=Range)
 
-class MMWaveRadarSystem:
-  def __init__(self, mmWaveDevice_platform: str, mmWaveDevice_Ctrl_port_name: str, mmWaveDevice_Data_port_name: str, mmWaveDevice_profile: str, mmWaveDevice_Ctrl_port_baudrate: int = 115200, mmWaveDevice_Data_port_baudrate: int = 921600, mmWaveDevice_Send_timeInterval: int | float = 0.1, mmWaveDevice_Buffering_timeInterval: int | float = 0.1, mmWaveDevice_Parse_timeInterval: int | float = 0.5, threshold_dB: int | float = 14, removeStaticClutter: bool = True, framePeriodicity_ms: int = 1000, log_enable: bool = False):
+class MmWaveRadarSystem:
+  def __init__(self, mmWaveDevice_platform: str, mmWaveDevice_Ctrl_port_name: str, mmWaveDevice_Data_port_name: str, mmWaveDevice_profile: str, mmWaveDevice_Ctrl_port_baudrate: int = 115200, mmWaveDevice_Data_port_baudrate: int = 921600, mmWaveDevice_Send_timeInterval: int | float = 0.025, mmWaveDevice_Buffering_timeInterval: int | float = 0.1, mmWaveDevice_Parse_timeInterval: int | float = 0.5, threshold_dB: int | float = 14, removeStaticClutter: bool = True, framePeriodicity_ms: int = 1000, log_enable: bool = False):
     self.log_enable = log_enable
     if self.log_enable: 
       timer = Timer()
@@ -48,6 +48,12 @@ class MMWaveRadarSystem:
     self.parse_timeInterval = mmWaveDevice_Parse_timeInterval
     self.mmWaveDevice.sensorStop()
     self.mmWaveDevice.Ctrl_Load_file(mmWaveDevice_profile)
+    self.mmWaveDevice.config.command.guiMonitor.detectedObjects = 1
+    self.mmWaveDevice.config.command.guiMonitor.logMagnitudeRange = 0
+    self.mmWaveDevice.config.command.guiMonitor.noiseProfile = 0
+    self.mmWaveDevice.config.command.guiMonitor.rangeAzimuthHeatMap = 0
+    self.mmWaveDevice.config.command.guiMonitor.rangeDopplerHeatMap = 0
+    self.mmWaveDevice.config.command.guiMonitor.statsInfo = 0
     self.mmWaveDevice.set_cfarRangeThreshold_dB(threshold_dB)
     self.mmWaveDevice.set_removeStaticClutter(removeStaticClutter)
     self.mmWaveDevice.set_framePeriodicity(framePeriodicity_ms)
@@ -72,11 +78,11 @@ class MMWaveRadarSystem:
 if __name__ == "__main__":
   detectionLimit = AreaLimit_3d(Range(-5, 5), Range(0, 5), Range(-5, 5))
 
-  mmWaveRadarSystem = MMWaveRadarSystem("xWR14xx", "COM3", "COM4", "Ti_MmWave_Demo_Driver\Profile\Profile-4.cfg", log_enable=True)
+  mmWaveRadarSystem = MmWaveRadarSystem("xWR14xx", "COM3", "COM4", "Ti_MmWave_Demo_Driver\Profile\Profile-4.cfg", log_enable=True)
 
   mmWaveRadarSystem.start()
 
-  def plot_3d(detectionLimit: AreaLimit_3d, mmWaveRadarSystem: MMWaveRadarSystem):
+  def plot_3d(detectionLimit: AreaLimit_3d, mmWaveRadarSystem: MmWaveRadarSystem):
     figure: matplotlib.pyplot.Figure = matplotlib.pyplot.figure()
     figure.set_label("mmWave Radar detection chart")
     axes: matplotlib.pyplot.Axes = figure.add_subplot(111, projection="3d")
@@ -91,7 +97,7 @@ if __name__ == "__main__":
     axes.legend()
     matplotlib.pyplot.show()
 
-  def plot_2d(detectionLimit: AreaLimit_3d, mmWaveRadarSystem: MMWaveRadarSystem):
+  def plot_2d(detectionLimit: AreaLimit_3d, mmWaveRadarSystem: MmWaveRadarSystem):
     figure: matplotlib.pyplot.Figure = matplotlib.pyplot.figure()
     figure.set_label("mmWave Radar detection chart")
     axes: matplotlib.pyplot.Axes = figure.add_subplot(111)
@@ -114,4 +120,4 @@ if __name__ == "__main__":
 
   mmWaveRadarSystem.stop()
 
-  # def mmWaveRadarSystem
+  del mmWaveRadarSystem
