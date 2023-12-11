@@ -65,7 +65,7 @@ class MmWaveRadarSystem:
       self.mmWaveDevice.sensorStop()
   def __del__(self):
     if self.log_enable: print(f"[{datetime.datetime.now()}] MmWaveRadarSystem.del(): Release millimeter wave devices")
-    # self.stop()
+    self.stop()
     del self.mmWaveDevice
 
   def detectedPoints(self, wait_new: bool = True) -> list[tuple]:
